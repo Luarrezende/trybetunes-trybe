@@ -1,5 +1,9 @@
 import React from 'react';
 import Header from '../components/Header';
+import api from '../services/searchAlbumsAPI';
+import Album from '../components/Album';
+
+let timing;
 
 class Search extends React.Component {
   constructor() {
@@ -7,6 +11,9 @@ class Search extends React.Component {
     this.state = {
       bandValue: '',
       buttonDisable: true,
+      loading: false,
+      data: null,
+      saveName: '',
     };
   }
 
@@ -26,32 +33,55 @@ class Search extends React.Component {
     });
   };
 
-  // handleButton = async (e) => {
-  //   e.preventDefault();
-  //   const { bandValue } = this.state;
-  //   this.setState({ buttonClicked: true });
-  //   this.setState({ buttonClicked: false });
-  // };
+  handleButton = async () => {
+    clearTimeout(timing);
+    const { bandValue } = this.state;
+    const number = 600;
+    this.setState({
+      loading: true,
+      saveName: bandValue,
+      bandValue: '',
+      buttonDisable: true,
+    });
+    timing = setTimeout(async () => {
+      clearTimeout(timing);
+      const result = await api(bandValue);
+      this.setState({
+        loading: false,
+        data: result,
+      });
+      this.setState({ loading: false });
+    }, number);
+  };
 
   render() {
-    const { bandValue, buttonDisable } = this.state;
+    const { bandValue, buttonDisable, loading, data, saveName } = this.state;
     return (
       <div data-testid="page-search">
         <Header />
-        <input
-          type="text"
-          data-testid="search-artist-input"
-          name="bandValue"
-          value={ bandValue }
-          onChange={ this.onInputChange }
-        />
-        <button
-          data-testid="search-artist-button"
-          disabled={ buttonDisable }
-          onClick={ this.handleButton }
-        >
-          Pesquisar
-        </button>
+        {
+          !loading ? (
+            <>
+              <input
+                type="text"
+                data-testid="search-artist-input"
+                name="bandValue"
+                value={ bandValue }
+                onChange={ this.onInputChange }
+              />
+              <button
+                data-testid="search-artist-button"
+                disabled={ buttonDisable }
+                onClick={ this.handleButton }
+              >
+                Pesquisar
+              </button>
+            </>
+          ) : <p>Carregando...</p>
+        }
+        {
+          data !== null && <Album artist={ saveName } result={ data } />
+        }
       </div>
     );
   }
