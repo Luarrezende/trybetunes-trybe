@@ -1,6 +1,5 @@
 import React from 'react';
 import { Redirect } from 'react-router-dom';
-import PropTypes from 'prop-types';
 import { createUser } from '../services/userAPI';
 
 class Login extends React.Component {
@@ -9,20 +8,43 @@ class Login extends React.Component {
     this.state = {
       result: true,
       buttonClicked: false,
+      loginValue: '',
+      buttonDisable: true,
     };
   }
 
+  onInputChange = ({ target }) => {
+    const { name, value, checked, type } = target;
+    this.setState({
+      [name]: (type === 'checkbox' ? checked : value),
+    }, this.verify);
+  };
+
+  verify = () => {
+    const { loginValue } = this.state;
+    const number = 3;
+    const isInput = (input) => input.length >= number;
+    if (isInput(loginValue)) {
+      this.setState({
+        buttonDisable: false,
+      });
+    } else {
+      this.setState({
+        buttonDisable: true,
+      });
+    }
+  };
+
   handleButton = async (e) => {
     e.preventDefault();
-    const { loginValue } = this.props;
+    const { loginValue } = this.state;
     this.setState({ buttonClicked: true });
     await createUser({ name: loginValue });
     this.setState({ result: false, buttonClicked: false });
   };
 
   render() {
-    const { buttonDisable, loginValue, onInputChange } = this.props;
-    const { buttonClicked, result } = this.state;
+    const { buttonClicked, result, loginValue, buttonDisable } = this.state;
     return (
       <div data-testid="page-login">
         <form>
@@ -31,7 +53,7 @@ class Login extends React.Component {
             data-testid="login-name-input"
             name="loginValue"
             value={ loginValue }
-            onChange={ onInputChange }
+            onChange={ this.onInputChange }
           />
           <button
             data-testid="login-submit-button"
@@ -48,9 +70,4 @@ class Login extends React.Component {
   }
 }
 
-Login.propTypes = {
-  loginValue: PropTypes.string.isRequired,
-  buttonDisable: PropTypes.bool.isRequired,
-  onInputChange: PropTypes.func.isRequired,
-};
 export default Login;
