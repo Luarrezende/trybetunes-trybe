@@ -5,7 +5,6 @@ import { Link } from 'react-router-dom';
 class Album extends React.Component {
   render() {
     const { result, artist } = this.props;
-    console.log(this.props);
     return (
       <div data-testid="page-album">
         <div>

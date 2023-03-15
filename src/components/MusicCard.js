@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { addSong } from '../services/favoriteSongsAPI';
+import { getFavoriteSongs, addSong, removeSong } from '../services/favoriteSongsAPI';
 
 class MusicCard extends React.Component {
   constructor() {
@@ -11,10 +11,26 @@ class MusicCard extends React.Component {
     };
   }
 
-  handleButton = async (e) => {
-    e.preventDefault();
+  async componentDidMount() {
+    const { trackName } = this.props;
+    this.setState({ loading: true });
+    const localApi = await getFavoriteSongs();
+    this.setState({
+      checked: localApi.some((song) => song.trackName === trackName),
+      loading: false,
+    });
+  }
+
+  handleButton = async () => {
+    const { checked } = this.state;
+    const { trackName, previewUrl, trackId } = this.props;
     this.setState({ loading: true, checked: true });
-    await addSong({ });
+    if (!checked) {
+      await addSong({ trackName, previewUrl, trackId });
+    } else {
+      await removeSong({ trackName, previewUrl, trackId });
+      this.setState({ checked: false });
+    }
     this.setState({ loading: false });
   };
 
@@ -42,7 +58,7 @@ class MusicCard extends React.Component {
                 Favorita
                 <input
                   type="checkbox"
-                  onClickCapture={ this.handleButton }
+                  onClick={ this.handleButton }
                   checked={ checked }
                 />
               </label>
